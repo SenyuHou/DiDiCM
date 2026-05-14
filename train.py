@@ -372,6 +372,8 @@ group.add_argument('--recovery-interval', type=int, default=0, metavar='N',
                    help='how many batches to wait before writing recovery checkpoint')
 group.add_argument('--checkpoint-hist', type=int, default=10, metavar='N',
                    help='number of checkpoints to keep (default: 10)')
+group.add_argument('--checkpoint-policy', default='all', choices=('all', 'best', 'none'),
+                   help='checkpoint saving policy: all keeps epoch history, best keeps only model_best, none disables checkpoint saves')
 group.add_argument('-j', '--workers', type=int, default=4, metavar='N',
                    help='how many training processes to use (default: 4)')
 group.add_argument('--save-images', action='store_true', default=False,
@@ -384,6 +386,10 @@ group.add_argument('--output', default='', type=str, metavar='PATH',
                    help='path to output folder (default: none, current dir)')
 group.add_argument('--experiment', default='', type=str, metavar='NAME',
                    help='name of train experiment, name of sub-folder for output')
+group.add_argument('--log-dir', default='', type=str, metavar='PATH',
+                   help='root folder for realtime log files; logs are written to <log-dir>/<experiment>/log.txt')
+group.add_argument('--log-file', default='log.txt', type=str, metavar='NAME',
+                   help='log filename used inside the experiment log folder')
 group.add_argument('--eval-metric', default='top1', type=str, metavar='EVAL_METRIC',
                    help='Best metric (default: "top1"')
 group.add_argument('--tta', type=int, default=0, metavar='N',
@@ -443,6 +449,39 @@ def _parse_args():
     # Cache the args as a text string to save them in the output dir later
     args_text = yaml.safe_dump(args.__dict__, default_flow_style=False)
     return args, args_text
+
+
+def _setup_file_logging(log_dir, exp_name, log_file):
+    if not log_dir:
+        return None
+
+    log_path = os.path.abspath(os.path.join(log_dir, exp_name, log_file))
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers:
+        if isinstance(handler, logging.FileHandler) and handler.baseFilename == log_path:
+            return log_path
+
+    file_handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+    file_handler.setLevel(logging.INFO)
+    root_logger.addHandler(file_handler)
+    return log_path
+
+
+def _remove_non_best_checkpoints(checkpoint_dir):
+    if not checkpoint_dir:
+        return
+    for filename in os.listdir(checkpoint_dir):
+        if (
+            filename.startswith('checkpoint-')
+            or filename.startswith('last.')
+            or filename.startswith('tmp.')
+        ):
+            path = os.path.join(checkpoint_dir, filename)
+            if os.path.isfile(path):
+                os.remove(path)
 
 
 def main():
@@ -645,6 +684,12 @@ def main():
             safe_model_name(args.model),
             str(data_config['input_size'][-1])
         ])
+
+    log_path = None
+    if utils.is_primary(args):
+        log_path = _setup_file_logging(args.log_dir, exp_name, args.log_file)
+        if log_path:
+            _logger.info(f'Realtime log file: {log_path}')
 
     # optionally resume from a checkpoint
     resume_epoch = None
@@ -985,17 +1030,18 @@ def main():
     wandb_run = None
     if utils.is_primary(args):
         output_dir = utils.get_outdir(args.output if args.output else './output/train', exp_name)
-        saver = utils.CheckpointSaver(
-            model=model,
-            optimizer=optimizer,
-            args=args,
-            model_ema=model_ema,
-            amp_scaler=loss_scaler,
-            checkpoint_dir=output_dir,
-            recovery_dir=output_dir,
-            decreasing=decreasing_metric,
-            max_history=args.checkpoint_hist
-        )
+        if args.checkpoint_policy != 'none':
+            saver = utils.CheckpointSaver(
+                model=model,
+                optimizer=optimizer,
+                args=args,
+                model_ema=model_ema,
+                amp_scaler=loss_scaler,
+                checkpoint_dir=output_dir,
+                recovery_dir=output_dir,
+                decreasing=decreasing_metric,
+                max_history=args.checkpoint_hist
+            )
         with open(os.path.join(output_dir, 'args.yaml'), 'w') as f:
             f.write(args_text)
 
@@ -1125,6 +1171,19 @@ def main():
             if saver is not None:
                 # save proper checkpoint with eval metric
                 best_metric, best_epoch = saver.save_checkpoint(epoch, metric=latest_metric)
+                if args.checkpoint_policy == 'best':
+                    _remove_non_best_checkpoints(output_dir)
+                    saver.checkpoint_files = [
+                        checkpoint for checkpoint in saver.checkpoint_files
+                        if os.path.exists(checkpoint[0])
+                    ]
+            else:
+                if best_metric is None or (
+                    decreasing_metric and latest_metric < best_metric
+                ) or (
+                    not decreasing_metric and latest_metric > best_metric
+                ):
+                    best_metric, best_epoch = latest_metric, epoch
 
             if lr_scheduler is not None:
                 # step LR for next epoch

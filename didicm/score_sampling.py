@@ -188,6 +188,7 @@ class DiDiCMCLSampler(DiDiCMSampler):
     def run(self, model, y):
 
         all_diffusions_labels = []
+        final_labels = []
 
         for _ in range(self.N):
             all_labels = []
@@ -210,15 +211,20 @@ class DiDiCMCLSampler(DiDiCMSampler):
 
                 if self.return_diffusion_steps and (i+1) % (self.steps // self.num_steps_to_return) == 0:
                     all_labels.append(sample_uniform_labels.cpu())
-            
-            all_labels = torch.stack(all_labels, dim=1)
-            all_diffusions_labels.append(all_labels)
-        
-        all_diffusions_labels = torch.stack(all_diffusions_labels, dim=-1)
-        probs = F.one_hot(all_diffusions_labels[:, -1], num_classes=self.num_classes).to(y.dtype).mean(dim=1)
+
+            if self.return_diffusion_steps:
+                all_labels = torch.stack(all_labels, dim=1)
+                all_diffusions_labels.append(all_labels)
+            else:
+                final_labels.append(sample_uniform_labels)
+
         if self.return_diffusion_steps:
+            all_diffusions_labels = torch.stack(all_diffusions_labels, dim=-1)
+            probs = F.one_hot(all_diffusions_labels[:, -1], num_classes=self.num_classes).to(y.dtype).mean(dim=1)
             return probs, all_diffusions_labels
         else:
+            final_labels = torch.stack(final_labels, dim=1)
+            probs = F.one_hot(final_labels, num_classes=self.num_classes).to(y.dtype).mean(dim=1)
             return probs
 
 

@@ -81,6 +81,7 @@ class ConditionalSEDDLoss(DiffusionLoss):
             c_t = self.graph.sample_transition(c_0, sigma)
 
         log_score = score_utils.score_fn(model=model, y=y, labels=c_t, sigma=sigma, sampling=False)
+        log_score = torch.clamp(log_score, min=-20, max=20)
         loss = self.graph.score_entropy(log_score, sigma, c_t, c_0)
         
         # Weight the loss by noise level derivative

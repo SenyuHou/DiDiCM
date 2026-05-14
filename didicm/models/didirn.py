@@ -204,6 +204,7 @@ class DiDiRN(torch.nn.Module):
                  num_classes=1000,
                  arch='resnet18',
                  cond_channels=128,
+                 no_maxpool=False,
                  *args, **kwargs):
         super(DiDiRN, self).__init__()
 
@@ -218,7 +219,7 @@ class DiDiRN(torch.nn.Module):
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.maxpool = nn.Identity() if no_maxpool else nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.num_classes = num_classes
 
         self.ff_emb = TimestepEmbedder(cond_channels)
