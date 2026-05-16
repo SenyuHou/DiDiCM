@@ -4,4 +4,4 @@ __pycache__/
 checkpoints/*
 output/*
 data/*
-logs/*
+train_script.txt
