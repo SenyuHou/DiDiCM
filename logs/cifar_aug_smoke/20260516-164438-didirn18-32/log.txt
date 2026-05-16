@@ -1,0 +1,11 @@
+2026-05-16 16:44:38 - Realtime log file: I:\桌面\Codex_Project\DiDiCM\DiDiCM-main\logs\cifar_aug_smoke\20260516-164438-didirn18-32\log.txt
+2026-05-16 16:44:39 - Using full training data
+2026-05-16 16:44:39 - Using CIFAR standard train augmentation: RandomCrop(size, padding=4) + RandomHorizontalFlip.
+2026-05-16 16:44:39 - Using CIFAR standard eval preprocessing: ToTensor + Normalize.
+2026-05-16 16:44:39 - Using diffusion with loss: ConditionalSEDDLoss, sampler: DiDiCMCPSampler
+2026-05-16 16:44:39 - Scheduled epochs: 1 (epochs + cooldown_epochs). Warmup within epochs when warmup_prefix=False. LR stepped per epoch.
+2026-05-16 16:44:46 - Train: 0 [   0/97 (  1%)]  Loss: 3.19 (3.19)  Time: 7.226s,   70.86/s  (7.226s,   70.86/s)  LR: 1.000e-05  Data: 2.500 (2.500)
+2026-05-16 16:45:11 - Train: 0 [  50/97 ( 53%)]  Loss: 3.48 (3.27)  Time: 0.480s, 1065.96/s  (0.623s,  822.14/s)  LR: 1.000e-05  Data: 0.003 (0.052)
+2026-05-16 16:45:37 - Test: [   0/19]  Time: 3.203 (3.203)  Loss:   2.305 ( 2.305)  Acc@1:  11.523 ( 11.523)  Acc@5:  49.023 ( 49.023)
+2026-05-16 16:45:49 - Test: [  19/19]  Time: 0.996 (0.767)  Loss:   2.309 ( 2.308)  Acc@1:   9.191 ( 10.040)  Acc@5:  48.529 ( 50.490)
+2026-05-16 16:45:49 - *** Best metric: 10.039999998474121 (epoch 0)

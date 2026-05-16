@@ -92,8 +92,9 @@ class TimestepEmbedder(nn.Module):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_channels, out_channels, cond_channels, num_classes, stride=1):
+    def __init__(self, in_channels, out_channels, cond_channels, num_classes, stride=1, resnet_block=False):
         super(BasicBlock, self).__init__()
+        self.resnet_block = resnet_block
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
@@ -112,7 +113,7 @@ class BasicBlock(nn.Module):
             nn.Linear(cond_channels, out_channels),
         )
 
-        self.out_layers = nn.Sequential(
+        self.out_layers = nn.Identity() if resnet_block else nn.Sequential(
             GroupNorm32(32, out_channels * self.expansion),
             nn.SiLU()
         )
@@ -138,8 +139,9 @@ class BasicBlock(nn.Module):
 class Bottleneck(nn.Module):
     expansion = 4
 
-    def __init__(self, in_channels, out_channels, cond_channels, num_classes, stride=1):
+    def __init__(self, in_channels, out_channels, cond_channels, num_classes, stride=1, resnet_block=False):
         super(Bottleneck, self).__init__()
+        self.resnet_block = resnet_block
         # Bottleneck design: 1x1 -> 3x3 -> 1x1 convolutions
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
@@ -161,7 +163,7 @@ class Bottleneck(nn.Module):
             nn.Linear(cond_channels, out_channels * self.expansion),
         )
 
-        self.out_layers = nn.Sequential(
+        self.out_layers = nn.Identity() if resnet_block else nn.Sequential(
             GroupNorm32(32, out_channels * self.expansion),
             nn.SiLU()
         )
@@ -205,6 +207,8 @@ class DiDiRN(torch.nn.Module):
                  arch='resnet18',
                  cond_channels=128,
                  no_maxpool=False,
+                 resnet_block=False,
+                 zero_init_residual=False,
                  *args, **kwargs):
         super(DiDiRN, self).__init__()
 
@@ -221,6 +225,7 @@ class DiDiRN(torch.nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.Identity() if no_maxpool else nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.num_classes = num_classes
+        self.resnet_block = resnet_block
 
         self.ff_emb = TimestepEmbedder(cond_channels)
         self.label_embedder = nn.Embedding(num_classes, cond_channels)
@@ -239,14 +244,37 @@ class DiDiRN(torch.nn.Module):
         # Final FC layer accounts for block expansion
         final_channels = 512 * block.expansion
         self.fc = nn.Linear(final_channels, num_classes)
+        self._init_weights(zero_init_residual=zero_init_residual)
 
     def _make_layer(self, block, out_channels, num_blocks, cond_channels, num_classes, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = nn.ModuleList()
         for stride in strides:
-            layers.append(block(self.in_channels, out_channels, cond_channels, num_classes, stride))
+            layers.append(block(
+                self.in_channels,
+                out_channels,
+                cond_channels,
+                num_classes,
+                stride,
+                resnet_block=self.resnet_block,
+            ))
             self.in_channels = out_channels * block.expansion
         return layers
+
+    def _init_weights(self, zero_init_residual=False):
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(module, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
+
+        if zero_init_residual:
+            for module in self.modules():
+                if isinstance(module, Bottleneck):
+                    nn.init.constant_(module.bn3.weight, 0)
+                elif isinstance(module, BasicBlock):
+                    nn.init.constant_(module.bn2.weight, 0)
 
     def forward(self, x, c, t):
         labels = c

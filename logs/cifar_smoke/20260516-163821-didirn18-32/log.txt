@@ -1,0 +1,9 @@
+2026-05-16 16:38:21 - Realtime log file: I:\桌面\Codex_Project\DiDiCM\DiDiCM-main\logs\cifar_smoke\20260516-163821-didirn18-32\log.txt
+2026-05-16 16:38:23 - Using full training data
+2026-05-16 16:38:23 - Using diffusion with loss: ConditionalSEDDLoss, sampler: DiDiCMCPSampler
+2026-05-16 16:38:23 - Scheduled epochs: 1 (epochs + cooldown_epochs). Warmup within epochs when warmup_prefix=False. LR stepped per epoch.
+2026-05-16 16:38:31 - Train: 0 [   0/97 (  1%)]  Loss: 3.13 (3.13)  Time: 7.388s,   69.30/s  (7.388s,   69.30/s)  LR: 1.000e-05  Data: 2.538 (2.538)
+2026-05-16 16:38:55 - Train: 0 [  50/97 ( 53%)]  Loss: 3.49 (3.28)  Time: 0.480s, 1066.70/s  (0.618s,  828.55/s)  LR: 1.000e-05  Data: 0.002 (0.051)
+2026-05-16 16:39:20 - Test: [   0/19]  Time: 3.276 (3.276)  Loss:   2.305 ( 2.305)  Acc@1:  11.523 ( 11.523)  Acc@5:  50.000 ( 50.000)
+2026-05-16 16:39:32 - Test: [  19/19]  Time: 0.984 (0.744)  Loss:   2.310 ( 2.309)  Acc@1:   9.559 ( 10.050)  Acc@5:  51.838 ( 50.920)
+2026-05-16 16:39:32 - *** Best metric: 10.050000001525879 (epoch 0)

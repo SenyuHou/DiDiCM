@@ -1,0 +1,4 @@
+2026-05-14 19:55:01 - Realtime log file: I:\桌面\Codex_Project\DiDiCM\DiDiCM-main\logs\cifar\smoke-cifar-eps001\log.txt
+2026-05-14 19:55:01 - Using full training data
+2026-05-14 19:55:01 - Using diffusion with loss: ConditionalSEDDLoss, sampler: DiDiCMCLSampler
+2026-05-14 19:55:01 - Scheduled epochs: 3 (epochs + cooldown_epochs). Warmup within epochs when warmup_prefix=False. LR stepped per epoch.

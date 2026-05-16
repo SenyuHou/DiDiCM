@@ -20,6 +20,7 @@ from functools import partial
 import torch
 import torch.nn as nn
 import torchvision.utils
+from torchvision import transforms as tv_transforms
 import yaml
 from torch.nn.parallel import DistributedDataParallel as NativeDDP
 
@@ -327,6 +328,8 @@ group.add_argument('--smoothing', type=float, default=0.1,
                    help='Label smoothing (default: 0.1)')
 group.add_argument('--train-interpolation', type=str, default='random',
                    help='Training interpolation (random, bilinear, bicubic default: "random")')
+group.add_argument('--cifar-standard-aug', action='store_true', default=False,
+                   help='Use CIFAR standard augmentation: RandomCrop(size, padding=4) + horizontal flip.')
 group.add_argument('--drop', type=float, default=0.0, metavar='PCT',
                    help='Dropout rate (default: 0.)')
 group.add_argument('--drop-connect', type=float, default=None, metavar='PCT',
@@ -470,6 +473,25 @@ def _setup_file_logging(log_dir, exp_name, log_file):
     return log_path
 
 
+def _is_torchvision_cifar_dataset(dataset_name):
+    return dataset_name.lower() in {"torch/cifar10", "torch/cifar100"}
+
+
+def _build_cifar_standard_transform(input_size, mean, std, is_training):
+    image_size = input_size[-1] if isinstance(input_size, (tuple, list)) else input_size
+    transform_ops = []
+    if is_training:
+        transform_ops.extend([
+            tv_transforms.RandomCrop(image_size, padding=4),
+            tv_transforms.RandomHorizontalFlip(),
+        ])
+    transform_ops.extend([
+        tv_transforms.ToTensor(),
+        tv_transforms.Normalize(mean=mean, std=std),
+    ])
+    return tv_transforms.Compose(transform_ops)
+
+
 def _remove_non_best_checkpoints(checkpoint_dir):
     if not checkpoint_dir:
         return
@@ -497,6 +519,10 @@ def main():
         torch.backends.cudnn.benchmark = True
 
     args.prefetcher = not args.no_prefetcher
+    if args.cifar_standard_aug:
+        if not _is_torchvision_cifar_dataset(args.dataset):
+            raise ValueError("--cifar-standard-aug is only supported for --dataset torch/cifar10 or torch/cifar100")
+        args.prefetcher = False
     args.grad_accum_steps = max(1, args.grad_accum_steps)
     device = utils.init_distributed_device(args)
     if args.distributed:
@@ -926,6 +952,15 @@ def main():
             **common_loader_kwargs,
             **train_loader_kwargs,
         )
+        if args.cifar_standard_aug:
+            loader_train.dataset.transform = _build_cifar_standard_transform(
+                data_config['input_size'],
+                data_config['mean'],
+                data_config['std'],
+                is_training=True,
+            )
+            if utils.is_primary(args):
+                _logger.info('Using CIFAR standard train augmentation: RandomCrop(size, padding=4) + RandomHorizontalFlip.')
 
     loader_eval = None
     if args.val_split:
@@ -960,6 +995,15 @@ def main():
                 **common_loader_kwargs,
                 **eval_loader_kwargs,
             )
+            if args.cifar_standard_aug:
+                loader_eval.dataset.transform = _build_cifar_standard_transform(
+                    data_config['input_size'],
+                    data_config['mean'],
+                    data_config['std'],
+                    is_training=False,
+                )
+                if utils.is_primary(args):
+                    _logger.info('Using CIFAR standard eval preprocessing: ToTensor + Normalize.')
 
     # setup diffusion
     diffusion_loss_fn = None

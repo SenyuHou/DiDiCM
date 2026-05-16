@@ -1,0 +1,11 @@
+2026-05-14 19:29:43 - Realtime log file: I:\桌面\Codex_Project\DiDiCM\DiDiCM-main\logs\cifar\smoke-log-check\log.txt
+2026-05-14 19:29:43 - Using full training data
+2026-05-14 19:29:44 - Using diffusion with loss: ConditionalSEDDLoss, sampler: DiDiCMCLSampler
+2026-05-14 19:29:44 - Scheduled epochs: 1 (epochs + cooldown_epochs). Warmup within epochs when warmup_prefix=False. LR stepped per epoch.
+2026-05-14 19:29:54 - Train: 0 [   0/24 (  4%)]  Loss: 3.82 (3.82)  Time: 10.207s,  200.64/s  (10.207s,  200.64/s)  LR: 1.000e-05  Data: 3.237 (3.237)
+2026-05-14 19:30:29 - Test: [   0/4]  Time: 10.467 (10.467)  Loss:   2.312 ( 2.312)  Acc@1:   8.936 (  8.936)  Acc@5:  48.242 ( 48.242)
+2026-05-14 19:31:02 - Test: [   4/4]  Time: 8.582 (8.610)  Loss:   2.310 ( 2.310)  Acc@1:   9.015 (  9.640)  Acc@5:  50.055 ( 49.440)
+2026-05-14 19:31:02 - Current checkpoints:
+ ('./output/cifar\\smoke-log-check\\checkpoint-0.pth.tar', 9.63999999847412)
+
+2026-05-14 19:31:02 - *** Best metric: 9.63999999847412 (epoch 0)

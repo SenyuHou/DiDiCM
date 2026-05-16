@@ -86,10 +86,27 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         action="store_true",
         help="Keep DiDiRN's original maxpool stem. By default CIFAR disables it for 32x32 inputs.",
     )
+    parser.add_argument(
+        "--imagenet-block",
+        action="store_true",
+        help=(
+            "Keep DiDiRN's original post-conv GroupNorm+SiLU block. "
+            "By default CIFAR uses a ResNet-like residual block while preserving DiDiCM conditioning."
+        ),
+    )
+    parser.add_argument(
+        "--cifar-aug",
+        choices=("standard", "none", "imagenet"),
+        default="standard",
+        help=(
+            "CIFAR augmentation preset. standard uses mild crop/flip-style settings; "
+            "none disables train augmentation; imagenet keeps train.py defaults."
+        ),
+    )
     parser.add_argument("--no-diffusion", action="store_true", help="Disable DiDiCM diffusion training.")
-    parser.add_argument("--diffusion-sampler", choices=("cl", "cp"), default="cl")
-    parser.add_argument("--diffusion-steps", type=int, default=20)
-    parser.add_argument("--diffusion-eps", type=float, default=1e-2)
+    parser.add_argument("--diffusion-sampler", choices=("cl", "cp"), default="cp")
+    parser.add_argument("--diffusion-steps", type=int, default=4)
+    parser.add_argument("--diffusion-eps", type=float, default=1e-3)
     parser.add_argument("--dry-run", action="store_true", help="Print the generated command without running it.")
     return parser.parse_known_args()
 
@@ -179,7 +196,42 @@ def build_command(args: argparse.Namespace, extra_args: list[str]) -> list[str]:
     if not args.no_log_file:
         command.extend(["--log-dir", args.log_dir, "--log-file", args.log_file])
     if not args.no_diffusion and args.model.lower().startswith("didirn") and not args.imagenet_stem:
-        command.extend(["--model-kwargs", "no_maxpool=True"])
+        model_kwargs = ["no_maxpool=True"]
+        if not args.imagenet_block:
+            model_kwargs.extend(["resnet_block=True", "zero_init_residual=True"])
+        command.extend(["--model-kwargs", *model_kwargs])
+
+    if args.cifar_aug == "standard":
+        command.extend(
+            [
+                "--cifar-standard-aug",
+                "--hflip",
+                "0.5",
+                "--vflip",
+                "0.0",
+                "--color-jitter",
+                "0.0",
+                "--smoothing",
+                "0.0",
+            ]
+        )
+    elif args.cifar_aug == "none":
+        command.extend(
+            [
+                "--no-aug",
+                "--hflip",
+                "0.0",
+                "--vflip",
+                "0.0",
+                "--color-jitter",
+                "0.0",
+                "--smoothing",
+                "0.0",
+                "--train-interpolation",
+                "bilinear",
+            ]
+        )
+
     if not args.no_diffusion:
         command.extend(
             [

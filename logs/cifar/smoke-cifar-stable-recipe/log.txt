@@ -1,0 +1,35 @@
+2026-05-14 19:46:05 - Realtime log file: I:\桌面\Codex_Project\DiDiCM\DiDiCM-main\logs\cifar\smoke-cifar-stable-recipe\log.txt
+2026-05-14 19:46:05 - Using full training data
+2026-05-14 19:46:05 - Using diffusion with loss: ConditionalSEDDLoss, sampler: DiDiCMCLSampler
+2026-05-14 19:46:05 - Scheduled epochs: 6 (epochs + cooldown_epochs). Warmup within epochs when warmup_prefix=False. LR stepped per epoch.
+2026-05-14 19:46:13 - Train: 0 [   0/48 (  2%)]  Loss: 3.61 (3.61)  Time: 7.390s,  138.56/s  (7.390s,  138.56/s)  LR: 1.000e-05  Data: 2.823 (2.823)
+2026-05-14 19:46:57 - Test: [   0/4]  Time: 14.047 (14.047)  Loss:   2.309 ( 2.309)  Acc@1:   9.229 (  9.229)  Acc@5:  50.293 ( 50.293)
+2026-05-14 19:47:34 - Test: [   4/4]  Time: 9.987 (10.243)  Loss:   2.309 ( 2.308)  Acc@1:   9.624 ( 10.150)  Acc@5:  48.728 ( 50.060)
+2026-05-14 19:47:34 - Current checkpoints:
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-0.pth.tar', 10.149999987792969)
+
+2026-05-14 19:47:35 - Train: 1 [   0/48 (  2%)]  Loss: 3.30 (3.30)  Time: 1.061s,  964.91/s  (1.061s,  964.91/s)  LR: 5.900e-05  Data: 0.402 (0.402)
+2026-05-14 19:48:30 - Test: [   0/4]  Time: 24.734 (24.734)  Loss:   2.308 ( 2.308)  Acc@1:  10.156 ( 10.156)  Acc@5:  49.658 ( 49.658)
+2026-05-14 19:49:52 - Test: [   4/4]  Time: 8.015 (21.266)  Loss:   2.309 ( 2.308)  Acc@1:   9.900 (  9.920)  Acc@5:  49.613 ( 49.750)
+2026-05-14 19:49:52 - Current checkpoints:
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-0.pth.tar', 10.149999987792969)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-1.pth.tar', 9.919999935913086)
+
+2026-05-14 19:49:53 - Train: 2 [   0/48 (  2%)]  Loss: 3.09 (3.09)  Time: 1.051s,  973.91/s  (1.051s,  973.91/s)  LR: 1.080e-04  Data: 0.409 (0.409)
+2026-05-14 19:50:51 - Test: [   0/4]  Time: 26.061 (26.061)  Loss:   2.305 ( 2.305)  Acc@1:  10.010 ( 10.010)  Acc@5:  50.830 ( 50.830)
+2026-05-14 19:52:18 - Test: [   4/4]  Time: 8.512 (22.601)  Loss:   2.306 ( 2.307)  Acc@1:  11.449 (  9.970)  Acc@5:  51.106 ( 50.210)
+2026-05-14 19:52:18 - Current checkpoints:
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-0.pth.tar', 10.149999987792969)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-2.pth.tar', 9.969999955749511)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-1.pth.tar', 9.919999935913086)
+
+2026-05-14 19:52:19 - Train: 3 [   0/48 (  2%)]  Loss: 2.63 (2.63)  Time: 1.129s,  906.89/s  (1.129s,  906.89/s)  LR: 1.570e-04  Data: 0.409 (0.409)
+2026-05-14 19:53:18 - Test: [   0/4]  Time: 26.364 (26.364)  Loss:   2.307 ( 2.307)  Acc@1:  10.107 ( 10.107)  Acc@5:  50.293 ( 50.293)
+2026-05-14 19:54:51 - Test: [   4/4]  Time: 11.163 (23.828)  Loss:   2.303 ( 2.306)  Acc@1:  11.615 ( 10.700)  Acc@5:  50.830 ( 50.180)
+2026-05-14 19:54:51 - Current checkpoints:
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-3.pth.tar', 10.700000062561035)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-0.pth.tar', 10.149999987792969)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-2.pth.tar', 9.969999955749511)
+ ('./output/cifar\\smoke-cifar-stable-recipe\\checkpoint-1.pth.tar', 9.919999935913086)
+
+2026-05-14 19:54:52 - Train: 4 [   0/48 (  2%)]  Loss: 2.25 (2.25)  Time: 1.152s,  888.64/s  (1.152s,  888.64/s)  LR: 2.060e-04  Data: 0.403 (0.403)
